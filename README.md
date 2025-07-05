@@ -3,7 +3,4 @@
 
 
 ### Links
-- [💻 Campus](https://canvas.instructure.com/courses/11479535)
-- [💻 Groups.io](https://groups.io/g/fiuba-memo2/message/2616)
-- [💻 StackOverflow](https://stackoverflowteams.com/c/fiuba-memo2/questions)
-- [💻 Repositorios](https://gitlab.com/fiuba-memo2/alumnos)
+- [💻 Chatbot con material de catedra](https://notebooklm.google.com/notebook/5a9733f7-88a9-4cbd-9ae0-54e058c5b420)
