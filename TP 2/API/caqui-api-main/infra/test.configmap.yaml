@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apiconfig
+data:
+  APP_MODE: production
+  LOG_LEVEL: debug
+  PORT: "3000"
+  TEST_ENV: "test"

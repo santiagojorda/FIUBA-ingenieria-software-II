@@ -1,0 +1,35 @@
+version: '3.9'
+services:
+  web:
+    image: registry.gitlab.com/fiuba-memo2/ejemplos/restapi/restapi-dev:3.3.1
+    command: "/bin/bash"
+    stdin_open: true
+    tty: true
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000
+    volumes:
+        - .:/app
+    environment:
+        APP_MODE: "development"
+        PORT: 3000
+        TEST_DB_URL: "postgres://postgres:example@test_db:5432/postgres"
+        DEV_DB_URL: "postgres://postgres:example@dev_db:5432/postgres"
+    depends_on:
+      - test_db
+      - dev_db        
+
+  test_db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: example
+
+  dev_db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: example
+
+networks:
+  default:
+    name: localdev

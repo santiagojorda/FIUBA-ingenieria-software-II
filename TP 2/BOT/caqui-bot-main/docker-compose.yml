@@ -1,0 +1,16 @@
+version: '3.9'
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: "/bin/sh"
+    stdin_open: true
+    tty: true
+    volumes:
+        - .:/app
+    environment:
+        APP_MODE: "test"
+networks:
+  default:
+    name: localdev

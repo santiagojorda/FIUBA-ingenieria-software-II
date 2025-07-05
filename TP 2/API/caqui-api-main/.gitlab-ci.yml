@@ -1,0 +1,112 @@
+image: ruby:3.3.1
+
+services:
+  - postgres:9.5
+  - docker:dind  
+
+variables:
+  POSTGRES_DB: db_test
+  POSTGRES_USER: webapi
+  POSTGRES_PASSWORD: Passw0rd!
+  TEST_DB_URL: postgres://webapi:Passw0rd!@postgres/db_test
+  DB_HOST: postgres
+  TEAM: caqui
+
+stages:
+  - build
+  - package
+  - deploy_test
+  - smoke_test
+  - acceptance_test
+  - deploy_prod
+  - smoke_prod
+
+build_job:
+  stage: build
+  script:
+    - gem install bundler --no-document
+    - bundle install --without staging production
+    - APP_MODE=test bundle exec rake ci
+    - bundle exec rake version > VERSION.txt
+  artifacts:
+    when: always
+    paths:
+      - VERSION.txt
+      - reports/
+    reports:
+      junit: reports/spec/rspec.xml
+
+security_scan_job:
+  stage: build
+  image:
+    name: "zricethezav/gitleaks"
+    entrypoint: [""]
+  script:
+    - gitleaks detect --source . --verbose --report-path=reports/gitleaks-report.json
+  artifacts:
+    when: always
+    paths:
+      - reports/
+
+package_job:
+  stage: package
+  image: docker:stable
+  before_script:
+    - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+  script:
+    - VERSION=$(cat VERSION.txt)
+    - echo $VERSION
+    - docker build -f Dockerfile.prod --build-arg GIT_COMMIT=$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:$VERSION .
+    - docker tag $CI_REGISTRY_IMAGE:$VERSION $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:$VERSION
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - tags
+
+deploy_test_job:
+  stage: deploy_test
+  image: nicopaez/kubectl:1.32.5
+  environment: test
+  script:
+    - VERSION=$(cat VERSION.txt)
+    - cp ${KUBECONFIG} $HOME/.kube/config
+    - cp ${SECRETS} infra/${CI_ENVIRONMENT_NAME}.secrets.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} apply -f infra/${CI_ENVIRONMENT_NAME}.secrets.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} apply -f infra/${CI_ENVIRONMENT_NAME}.configmap.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} set image deployment/restapi restapi=$CI_REGISTRY_IMAGE:$VERSION
+  only:
+    - tags
+
+deploy_prod_job:
+  stage: deploy_prod
+  image: nicopaez/kubectl:1.32.5
+  environment: prod
+  script:
+    - VERSION=$(cat VERSION.txt)
+    - cp ${KUBECONFIG} $HOME/.kube/config
+    - cp ${SECRETS} infra/${CI_ENVIRONMENT_NAME}.secrets.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} apply -f infra/${CI_ENVIRONMENT_NAME}.secrets.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} apply -f infra/${CI_ENVIRONMENT_NAME}.configmap.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} set image deployment/restapi restapi=$CI_REGISTRY_IMAGE:$VERSION
+  when: manual
+
+smoke_test_job:
+  stage: smoke_test
+  image: nicopaez/kubectl:1.32.5
+  environment: test
+  script:
+    - VERSION=$(cat VERSION.txt)
+    - TARGET_HOST="https://api.9521.com.ar/caqui-test"
+    - ./scripts/smoke_test.sh $TARGET_HOST $VERSION
+  only:
+    - tags
+
+smoke_prod_job:
+  stage: smoke_prod
+  image: nicopaez/kubectl:1.32.5
+  environment: prod
+  script:
+    - VERSION=$(cat VERSION.txt)
+    - TARGET_HOST="https://api.9521.com.ar/caqui-prod"
+    - ./scripts/smoke_test.sh $TARGET_HOST $VERSION
+  when: manual

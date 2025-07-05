@@ -1,0 +1,9 @@
+image: registry.gitlab.com/fiuba-memo2/imagen-para-katas:1.10.0
+stages:
+  - build
+
+job_build:
+  stage: build
+  script:
+    - ./build_all.sh
+

@@ -1,0 +1,47 @@
+image: ruby:3.1.2
+
+services:
+  - postgres:14.4
+  - docker:dind
+
+variables:
+  POSTGRES_DB: jobvacancy_test
+  POSTGRES_USER: jobvacancy
+  POSTGRES_PASSWORD: jobvacancy
+  DB_HOST: postgres
+  TEST_DB_URL: postgres://jobvacancy:jobvacancy@postgres/jobvacancy_test
+  CUCUMBER_PUBLISH_QUIET: 'true'
+
+stages:
+  - build
+  - deploy_staging
+  - deploy_prod
+
+job_build_and_test:
+  stage: build
+  script:
+    - bundle install
+    - RACK_ENV=test bundle exec rake build_server
+  artifacts:
+    when: always
+    paths:
+      - reports/
+    reports:
+      junit: reports/spec/rspec.xml
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\[driver-switch\]/
+
+job_deploy_staging:
+  stage: deploy_staging
+  script:
+    - curl $DEPLOY_STAGING_URL?\$DEPLOY_STAGING_PARAMS
+  only:
+    - test
+
+job_deploy_prod:
+  stage: deploy_prod
+  script:
+    - curl $DEPLOY_PROD_URL?\$DEPLOY_PROD_PARAMS
+  only:
+    - prod

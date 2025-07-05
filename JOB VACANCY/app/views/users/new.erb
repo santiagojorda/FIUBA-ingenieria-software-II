@@ -1,0 +1,12 @@
+<h1>Registration</h1>
+<% form_for(@user, '/users/create') do |f| %> <%= f.label :name %>
+	<%= f.text_field :name %>
+	<%= f.label :email %>
+ 	<%= f.text_field :email %>
+  <%= f.label :password %>
+  <%= f.password_field :password %>
+  <%= f.label :password_confirmation %>
+  <%= f.password_field :password_confirmation %>
+  <br/>
+  <%= f.submit "Create", :class => "btn btn-primary" %>
+<% end %>

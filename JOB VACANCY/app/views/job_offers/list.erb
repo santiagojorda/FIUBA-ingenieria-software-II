@@ -1,0 +1,40 @@
+<h1>Current Job Offers</h1>
+<div class="search-box">
+	<form method="POST" action="search" class="form-search">
+		 <%= csrf_token_field %>
+		<input type="text" name="q" />
+		<input type="submit" value="search" id="search-button" class="btn btn-primary"/>
+	</form>
+</div>
+
+<table class="table table-bordered">
+	<tr>
+		<th>Title</th>
+		<th>Location</th>
+		<th>Description</th>
+		<th>Remuneration</th>
+		<th>Actions</th>
+	</tr>
+	<% @offers.each do | offer| %>
+
+	<tr>
+		<td>
+			<%= offer.title %>
+		</td>
+		<td>
+			<%= offer.location %>
+		</td>
+		<td>
+			<%= offer.description %>
+		</td>
+		<td>
+			<%= offer.remuneration.zero? ? 'Not specified' : offer.remuneration %>
+		</td>	
+		<td>
+			<%= link_to 'Apply', url_for(:job_offers, :apply, :offer_id => offer.id), :class => "btn btn-primary" %>
+		</td>		
+	</tr>
+
+  <% end %>
+
+</table>

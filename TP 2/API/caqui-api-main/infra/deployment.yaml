@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restapi
+  labels:
+    app: restapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: restapi
+  template:
+    metadata:
+      labels:
+        app: restapi
+    spec:
+      imagePullSecrets:
+        - name: registrycredentials
+      containers:
+      - name: restapi
+        image: registry.gitlab.com/fiuba-memo2/ejemplos/restapi:0.0.5
+        envFrom:
+          - configMapRef:
+              name: apiconfig
+          - secretRef:
+              name: apisecret
+        resources:
+          requests:
+            memory: "32Mi"
+          limits:
+            memory: "192Mi"
+        livenessProbe:
+          httpGet:
+            path: /version
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10

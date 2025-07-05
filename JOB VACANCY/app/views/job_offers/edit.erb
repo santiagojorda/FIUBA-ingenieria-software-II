@@ -1,0 +1,8 @@
+<h1>Edit Job Offer</h1>
+<% form_for(@job_offer, "/job_offers/update/#{@job_offer.id}") do |f| %>
+
+  <%= partial 'job_offers/form', :locals => { :f => f } %>
+
+  <%= f.submit "Save", :class => "btn btn-primary", :id => 'saveButton' %>
+  <%= link_to 'Cancel', url_for(:job_offers, :my), :class => "btn btn-secondary", :id => 'cancelButton' %>
+<% end %>

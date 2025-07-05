@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-api
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    cert-manager.io/cluster-issuer: memo2-issuer
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: api.9521.com.ar
+    http:
+      paths:
+      - pathType: ImplementationSpecific
+        path: "/caqui-prod(/|$)(.*)"
+        backend:
+          service:
+            name: restapi
+            port:
+              number: 8080
+  tls:
+    - hosts:
+      - api.9521.com.ar
+      secretName: api.9521.com.ar-tls

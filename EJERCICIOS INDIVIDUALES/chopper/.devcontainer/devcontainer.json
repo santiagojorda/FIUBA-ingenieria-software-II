@@ -1,0 +1,21 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ruby
+{
+	"name": "Ruby",
+	"image": "registry.gitlab.com/fiuba-memo2/imagen-para-katas:1.10.0",
+	"forwardPorts": [4567],
+	"workspaceFolder": "/workspace",
+	"mounts": [
+		"source=${localWorkspaceFolder},target=/workspace,type=bind"
+	],
+	"customizations": {
+		"vscode": {
+		  "extensions": [
+			"Shopify.ruby-extensions-pack",
+			"MateuszDrewniak.ruby-test-runner",
+			"connorshea.vscode-ruby-test-adapter",
+			"actboy168.tasks"
+		  ]
+		}
+	}
+}

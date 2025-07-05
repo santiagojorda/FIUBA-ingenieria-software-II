@@ -1,0 +1,288 @@
+openapi: 3.0.0
+info:
+  title: API de Gestión de Turnos Médicos
+  version: "1.0.0"
+  description: API REST para gestionar pacientes, médicos, turnos y asistencia médica.
+
+servers:
+  - url: https://api.9521.com.ar/caqui-prod
+
+security:
+  - AuthToken: []
+
+paths:
+  /version:
+    get:
+      summary: Obtener versión de la API
+      responses:
+        '200':
+          description: Versión actual
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+
+  /reset:
+    post:
+      summary: Resetear sistema
+      responses:
+        '200':
+          description: OK
+
+  /paciente:
+    post:
+      summary: Crear paciente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PacienteInput'
+      responses:
+        '201':
+          description: Paciente creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Paciente'
+
+  /especialidades:
+    post:
+      summary: Crear especialidad médica
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, duracion]
+              properties:
+                nombre:
+                  type: string
+                duracion:
+                  type: integer
+      responses:
+        '201':
+          description: Especialidad creada
+
+  /medicos:
+    post:
+      summary: Crear médico
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, especialidad, matricula, trabaja_feriados]
+              properties:
+                nombre:
+                  type: string
+                especialidad:
+                  type: string
+                matricula:
+                  type: string
+                trabaja_feriados:
+                  type: boolean
+      responses:
+        '201':
+          description: Médico creado
+
+  /medicos/{id_medico}:
+    get:
+      summary: Obtener médico por ID
+      parameters:
+        - name: id_medico
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Información del médico
+        '404':
+          description: Médico no encontrado
+
+  /turnos/{id_medico}/{inicio}/{fin}:
+    get:
+      summary: Obtener turnos disponibles de un médico entre fechas
+      parameters:
+        - name: id_medico
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: inicio
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: fin
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de turnos disponibles
+
+  /turnos_pendientes/{paciente_username_telegram}/{inicio}/{fin}:
+    get:
+      summary: Obtener turnos pendientes de un paciente
+      parameters:
+        - name: paciente_username_telegram
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: inicio
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: fin
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de turnos pendientes
+        '500':
+          description: Error interno
+
+  /reservar:
+    post:
+      summary: Reservar un turno
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_medico, username, fecha]
+              properties:
+                id_medico:
+                  type: integer
+                username:
+                  type: string
+                fecha:
+                  type: string
+      responses:
+        '201':
+          description: Turno reservado
+        '409':
+          description: Error al reservar turno
+
+  /turnos/{id_turno}/asistencia:
+    post:
+      summary: Confirmar asistencia a un turno
+      parameters:
+        - name: id_turno
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Asistencia confirmada
+        '409':
+          description: Error al confirmar asistencia
+
+  /turnos/{id_turno}/inasistencia:
+    post:
+      summary: Confirmar inasistencia a un turno
+      parameters:
+        - name: id_turno
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Inasistencia confirmada
+        '409':
+          description: Error al confirmar inasistencia
+
+  /historial_turnos/{paciente_username_telegram}:
+    get:
+      summary: Obtener historial de turnos de un paciente
+      parameters:
+        - name: paciente_username_telegram
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Historial de turnos
+        '500':
+          description: Error interno
+
+  /turnos/{id_turno}/cancelar:
+    post:
+      summary: Cancelar un turno
+      parameters:
+        - name: id_turno
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Turno cancelado
+        '409':
+          description: Error al cancelar
+
+  /turnos:
+    get:
+      summary: Obtener turnos asignados a un médico
+      parameters:
+        - name: medico_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de turnos asignados
+        '500':
+          description: Error interno
+
+components:
+  securitySchemes:
+    AuthToken:
+      type: apiKey
+      in: header
+      name: Authorization
+
+  schemas:
+    PacienteInput:
+      type: object
+      required: [nombre, dni, email, username]
+      properties:
+        nombre:
+          type: string
+        dni:
+          type: integer
+        email:
+          type: string
+        username:
+          type: string
+
+    Paciente:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        dni:
+          type: integer
+        email:
+          type: string
+        username:
+          type: string

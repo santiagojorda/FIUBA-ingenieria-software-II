@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegrambot
+  labels:
+    app: telegrambot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telegrambot
+  template:
+    metadata:
+      labels:
+        app: telegrambot
+    spec:
+      imagePullSecrets:
+        - name: registrycredentials
+      containers:
+      - name: telegrambot
+        image: registry.gitlab.com/fiuba-memo2/ejemplos/telegram-bot-example:0.0.16
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: botconfig
+          - secretRef:
+              name: botsecret
+        resources:
+          requests:
+            memory: "64Mi"
+          limits:
+            memory: "128Mi"

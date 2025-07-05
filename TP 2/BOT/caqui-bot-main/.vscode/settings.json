@@ -1,0 +1,4 @@
+{
+    "rubyTestExplorer.rspecCommand": "APP_MODE=test bundle exec rspec",
+    "rubyTestRunner.specCommand": "APP_MODE=test bundle exec rspec"
+}

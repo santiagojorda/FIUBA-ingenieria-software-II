@@ -1,0 +1,8 @@
+FROM ruby:3.1.2
+RUN mkdir /temp
+WORKDIR /temp
+ADD . /temp
+RUN bundler install
+RUN mkdir /jobvacancy
+WORKDIR /jobvacancy
+EXPOSE 3000

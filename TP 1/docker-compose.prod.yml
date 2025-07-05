@@ -1,0 +1,22 @@
+version: "3.3"
+services:
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - ./pg_data:/var/lib/postgresql  
+
+  webapp:
+    image: registry.gitlab.com/fiuba-memo2/jobvacancy:1.0.15
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000
+    environment:
+        RACK_ENV: "production"
+        PORT: 3000
+        DATABASE_URL: "postgres://postgres:example@db:5432/postgres"
+    depends_on:
+      - db

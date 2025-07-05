@@ -1,0 +1,68 @@
+image: ruby:3.3.1
+services:
+  - docker:dind
+
+variables:
+  TEAM: caqui
+
+stages:
+  - build
+  - package
+  - deploy_test
+
+build_job:
+  stage: build
+  script:
+    - gem install bundler -v 2.3.26 --no-document
+    - bundle install --without staging production
+    - APP_MODE=test bundle exec rake build_server
+    - bundle exec rake version > VERSION.txt
+  artifacts:
+    paths:
+      - VERSION.txt
+      - reports/
+    reports:
+      junit: reports/spec/rspec.xml
+
+
+package_job:
+  stage: package
+  image: docker:stable
+  before_script:
+    - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+  script:
+    - VERSION=$(cat VERSION.txt)
+    - echo $VERSION
+    - docker build -f Dockerfile.prod --build-arg VERSION=$VERSION --build-arg GIT_COMMIT=$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:$VERSION .
+    - docker tag $CI_REGISTRY_IMAGE:$VERSION $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:$VERSION
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - tags
+
+deploy_test_job:
+  stage: deploy_test
+  image: nicopaez/kubectl:1.32.5
+  environment: test
+  script:
+    - VERSION=$(cat VERSION.txt)
+    - cp ${KUBECONFIG} $HOME/.kube/config
+    - cp ${SECRETS} infra/${CI_ENVIRONMENT_NAME}.secrets.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} apply -f infra/${CI_ENVIRONMENT_NAME}.secrets.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} apply -f infra/${CI_ENVIRONMENT_NAME}.configmap.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} set image deployment/telegrambot telegrambot=$CI_REGISTRY_IMAGE:$VERSION
+  only:
+    - tags
+
+deploy_prod_job:
+  stage: deploy_test
+  image: nicopaez/kubectl:1.32.5
+  environment: prod
+  script:
+    - VERSION=$(cat VERSION.txt)
+    - cp ${KUBECONFIG} $HOME/.kube/config
+    - cp ${SECRETS} infra/${CI_ENVIRONMENT_NAME}.secrets.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} apply -f infra/${CI_ENVIRONMENT_NAME}.secrets.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} apply -f infra/${CI_ENVIRONMENT_NAME}.configmap.yaml
+    - kubectl -n ${TEAM}-${CI_ENVIRONMENT_NAME} set image deployment/telegrambot telegrambot=$CI_REGISTRY_IMAGE:$VERSION
+  when: manual

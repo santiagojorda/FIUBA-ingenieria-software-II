@@ -1,0 +1,15 @@
+source 'https://rubygems.org'
+
+gem 'debug'
+gem 'guard'
+gem 'guard-rspec'
+gem 'puma'
+gem 'rack-test'
+gem 'rackup'
+gem 'rake'
+gem 'rspec'
+gem 'rubocop'
+gem 'rubocop-rspec'
+gem 'simplecov', require: false
+gem 'sinatra'
+gem 'sinatra-contrib'

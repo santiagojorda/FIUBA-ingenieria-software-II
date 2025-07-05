@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "type": "rdbg",
+            "name": "Debug current file",
+            "request": "launch",
+            "script": "${file}",
+            "askParameters": true
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: botconfig
+data:
+  APP_MODE: production
+  LOG_LEVEL: info
+  TELEGRAM_USERNAME: caquiProdBot
+  URL_API: http://restapi:8080

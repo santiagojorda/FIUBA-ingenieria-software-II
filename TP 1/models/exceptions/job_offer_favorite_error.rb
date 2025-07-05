@@ -1,0 +1,2 @@
+class JobOfferFavoriteError < StandardError
+end

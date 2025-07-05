@@ -1,0 +1,33 @@
+version: "3.3"
+services:
+
+  test_db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: example
+
+  dev_db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: example
+
+  webapp:
+    # platform: linux/amd64 # force platform to avoid arm64 issue
+    image: nicopaez/jobvacancy-dev:1.4.0
+    command: "/bin/bash"
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    ports:
+      - "3000:3000"
+    expose:
+      - 3000
+    volumes:
+      - .:/jobvacancy
+    environment:
+      CUCUMBER_PUBLISH_QUIET: "true"
+      RACK_ENV: "development"
+      TEST_DB_URL: "postgres://postgres:example@test_db:5432/postgres"
+      DEV_DB_URL: "postgres://postgres:example@dev_db:5432/postgres"
+    depends_on:
+      - test_db
+      - dev_db
